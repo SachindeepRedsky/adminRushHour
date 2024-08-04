@@ -8,7 +8,12 @@
 
 <body>
   <h1 style="text-align: center;">Let's Create Puzzle Id</h1>
-  <div class="grid" id="puzzleGrid"></div>
+  <div style="width: 100%;display: flex;justify-content: center;">
+    <div style="display: inline-block" id="WinningKeyHint">
+      <p style="margin-top: 32%;text-wrap: nowrap;">Please select the position of winning key first here ===></p>
+    </div>
+    <div class="grid" id="puzzleGrid"></div>
+  </div>
   <button id="generateIdButton">Generate Puzzle ID</button>
   <label style="margin-top: 30px;" for="timerInput">Set Timer (seconds):</label>
   <input type="number" id="timerInput" value="30" min="10" max="120" step="10">
@@ -27,8 +32,9 @@
         <option value="empty">Empty</option>
         <option value="winning">Winning Key</option>
       </select>
+
       <label for="pieceSize">Piece Size:</label>
-      <input type="number" id="pieceSize" min="1" max="6">
+      <input type="number" id="pieceSize" min="2" max="3">
       <label for="emptyOrientation" id="emptyOrientationLabel" style="display:none;">Empty Orientation:</label>
       <select id="emptyOrientation" style="display:none;">
         <option value="horizontal">Horizontal</option>

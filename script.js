@@ -8,9 +8,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const pieceTypeSelect = document.getElementById("pieceType");
   const pieceSizeInput = document.getElementById("pieceSize");
   const emptyOrientationSelect = document.getElementById("emptyOrientation");
-  const emptyOrientationLabel = document.getElementById(
-    "emptyOrientationLabel"
-  );
+  const emptyOrientationLabel = document.getElementById("emptyOrientationLabel");
+  const WinningKeyHint = document.getElementById("WinningKeyHint");
+
+
 
   let selectedCellIndex = null;
   let nextLetterCode = "B".charCodeAt(0); // Start with letter 'B'
@@ -20,12 +21,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const cell = document.createElement("div");
     cell.dataset.index = i;
     cell.classList.add("grid-cell"); // Added class for styling
-    cell.addEventListener("click", () => openPieceModal(cell));
+    cell.addEventListener("click", () => openPieceModal(cell, i));
     grid.appendChild(cell);
   }
 
   // Open the piece selection modal
-  function openPieceModal(cell) {
+  function openPieceModal(cell, index) {
     // Check if the cell is already part of a selected piece or disabled
     if (
       cell.classList.contains("selected") ||
@@ -37,16 +38,26 @@ document.addEventListener("DOMContentLoaded", () => {
     selectedCellIndex = parseInt(cell.dataset.index);
     const rowIndex = Math.floor(selectedCellIndex / 6);
 
+    if (rowIndex !== 2 && !isWinningPiecePlaced()) {
+      alert('Please place winning key first in 3rd row by selecting a cell');
+      return;
+    }
+
+    if (rowIndex === 2 && !isWinningPiecePlaced() && (index == 16 || index == 17)) {
+      alert('Invalid piece placement, key should not be placed at the end of the row.');
+      return;
+    }
+
     // Show/hide winning piece option based on the row index
     pieceTypeSelect.innerHTML =
       rowIndex === 2 && !isWinningPiecePlaced()
-        ? `<option value="horizontal">Horizontal</option>
-         <option value="vertical">Vertical</option>
-         <option value="empty">Empty</option>
-         <option value="winning">Winning Key</option>`
+        ? `<option value="winning">Winning Key</option>`
         : `<option value="horizontal">Horizontal</option>
-         <option value="vertical">Vertical</option>
-         <option value="empty">Empty</option>`;
+         <option value="vertical">Vertical</option>`;
+
+    // set size on the bases of piece type
+    pieceSizeInput.value = rowIndex === 2 && !isWinningPiecePlaced() ? 2 : 2;
+    pieceSizeInput.disabled = rowIndex === 2 && !isWinningPiecePlaced() ? true : false;
 
     // Ensure empty orientation is hidden unless "empty" is selected
     if (pieceTypeSelect.value === "empty") {
@@ -64,7 +75,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // Close the modal
   closeModal.onclick = function () {
     pieceModal.style.display = "none";
-    clearFocusedCells(); // Clear focused cells when the modal is closed
   };
 
   // Handle piece type change to show or hide the empty orientation dropdown
@@ -83,13 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const pieceType = pieceTypeSelect.value;
     const pieceSize = parseInt(pieceSizeInput.value);
     const emptyOrientation = emptyOrientationSelect.value;
-    console.log(
-      "pieceType=== ",
-      pieceType,
-      "pieceSize====",
-      pieceSize,
-      "emptyOrientation===== "
-    );
+
     if (!pieceSize || pieceSize < 1 || pieceSize > 3) {
       alert("Please enter a valid piece size between 1 and 3.");
       return;
@@ -98,6 +102,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (pieceType === "empty" && !emptyOrientation) {
       alert("Please select the orientation for the empty piece.");
       return;
+    }
+
+    if (pieceType === "horizontal" && (selectedCellIndex + 1) > 3) {
+      console.log("selectedCellIndex", selectedCellIndex)
     }
 
     // Check for winning piece priority
@@ -119,8 +127,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (applyPiece(selectedCellIndex, pieceType, pieceSize, emptyOrientation)) {
       pieceModal.style.display = "none";
-      clearFocusedCells(); // Clear focused cells after applying piece
-      setTimeout(focusNextEmptyCell, 500); // Delay to ensure modal closes before focusing next cell
     }
   };
 
@@ -132,16 +138,15 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Apply piece to the grid
-  function applyPiece(startIndex, type, size, orientation) {
+  function applyPiece(startIndex, type, size) {
     const cells = Array.from(grid.children);
     let step = type === "horizontal" || type === "winning" ? 1 : 6;
-    let orientationStep = orientation === "horizontal" ? 1 : 6;
     let validPlacement = true;
     let overlapDetected = false;
-
     // Check if the placement is valid and does not overlap with other pieces
     for (let i = 0; i < size; i++) {
-      let index = startIndex + i * orientationStep;
+      let index = startIndex + i * step;
+
       if (
         index >= 36 ||
         (type === "horizontal" && index % 6 < startIndex % 6) ||
@@ -164,28 +169,17 @@ document.addEventListener("DOMContentLoaded", () => {
     // Show alert for overlap or invalid placement
     if (overlapDetected) {
       alert("Cannot place piece as it overlaps with existing pieces.");
-      focusOnCell(cells[selectedCellIndex]); // Keep focus on the previously selected cell
       return false;
     }
 
     if (!validPlacement) {
       alert("Invalid piece placement. Please try again.");
-      focusOnCell(cells[selectedCellIndex]); // Keep focus on the previously selected cell
       return false;
     }
 
     // Proceed with placing the piece if valid
     if (validPlacement) {
-      if (type === "empty") {
-        for (let i = 0; i < size; i++) {
-          let index = startIndex + i * orientationStep;
-          cells[index].classList.add("disabled"); // Disable the cell
-          cells[index].style.backgroundColor = "red"; // Change cell color to red
-          cells[index].removeEventListener("click", () =>
-            openPieceModal(cells[index])
-          ); // Remove click event
-        }
-      } else if (type === "winning") {
+      if (type === "winning") {
         for (let i = 0; i < size; i++) {
           let index = startIndex + i * step;
           cells[index].classList.add("winning-piece");
@@ -208,48 +202,25 @@ document.addEventListener("DOMContentLoaded", () => {
           let index = startIndex + i * step;
           cells[index].classList.add("selected");
           cells[index].classList.add("disabled"); // Mark the cell as disabled
-          cells[index].style.backgroundColor = "#fff";
+          cells[index].style.backgroundColor = (type == "horizontal" ? "#55FD2F" : "#E0000F");
           cells[index].dataset.letter = pieceLetter; // Store the letter in the cell
           cells[index].removeEventListener("click", () =>
             openPieceModal(cells[index])
           ); // Remove click event
         }
       }
-
+      if (isWinningPiecePlaced()) {
+        WinningKeyHint.style.display = "none";
+      }
       return true; // Indicate successful piece application
     } else {
       alert("Invalid piece placement. Please try again.");
-      focusOnCell(cells[selectedCellIndex]); // Keep focus on the previously selected cell
       return false;
     }
+
+
   }
 
-  // Function to keep focus on the previously selected cell
-  function focusOnCell(cell) {
-    clearFocusedCells(); // Clear existing focus
-    cell.classList.add("focused-cell"); // Highlight the focused cell
-    openPieceModal(cell);
-  }
-
-  // Focus on a specific cell and open the modal
-  function focusNextEmptyCell() {
-    const cells = Array.from(grid.children);
-    const startIndex = findNextEmptyCellIndex();
-
-    if (startIndex !== -1) {
-      const nextCell = cells[startIndex];
-      nextCell.classList.add("focused-cell"); // Highlight the focused cell
-      openPieceModal(nextCell);
-    }
-  }
-
-  // Clear the focus highlight from all cells
-  function clearFocusedCells() {
-    const cells = Array.from(grid.children);
-    cells.forEach((cell) => {
-      cell.classList.remove("focused-cell");
-    });
-  }
 
   // Find the first empty cell to the right of the currently selected cell
   function findNextEmptyCellIndex() {
@@ -277,7 +248,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Call the function to focus on the first cell initially
-  initialFocusOnLoad();
+  // initialFocusOnLoad();
 
   // Generate Puzzle ID
   // generateIdButton.addEventListener("click", generatePuzzleId);
