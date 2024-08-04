@@ -276,6 +276,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const timerValue = timerInput.value || 30; // Default to 30 if no value is set
     puzzleId += `&t${timerValue}`;
-    puzzleIdOutput.textContent = `Puzzle ID: ${puzzleId}`;
+    puzzleIdOutput.textContent = `https://sachindeepredsky.github.io/rushhour/#${puzzleId}`;
   });
 });
