@@ -8,10 +8,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const pieceTypeSelect = document.getElementById("pieceType");
   const pieceSizeInput = document.getElementById("pieceSize");
   const emptyOrientationSelect = document.getElementById("emptyOrientation");
-  const emptyOrientationLabel = document.getElementById("emptyOrientationLabel");
+  const emptyOrientationLabel = document.getElementById(
+    "emptyOrientationLabel"
+  );
   const WinningKeyHint = document.getElementById("WinningKeyHint");
-
-
 
   let selectedCellIndex = null;
   let nextLetterCode = "B".charCodeAt(0); // Start with letter 'B'
@@ -39,12 +39,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const rowIndex = Math.floor(selectedCellIndex / 6);
 
     if (rowIndex !== 2 && !isWinningPiecePlaced()) {
-      alert('Please place winning key first in 3rd row by selecting a cell');
+      alert("Please place winning key first in 3rd row by selecting a cell");
       return;
     }
 
-    if (rowIndex === 2 && !isWinningPiecePlaced() && (index == 16 || index == 17)) {
-      alert('Invalid piece placement, key should not be placed at the end of the row.');
+    if (
+      rowIndex === 2 &&
+      !isWinningPiecePlaced() &&
+      (index == 16 || index == 17)
+    ) {
+      alert(
+        "Invalid piece placement, key should not be placed at the end of the row."
+      );
       return;
     }
 
@@ -57,7 +63,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // set size on the bases of piece type
     pieceSizeInput.value = rowIndex === 2 && !isWinningPiecePlaced() ? 2 : 2;
-    pieceSizeInput.disabled = rowIndex === 2 && !isWinningPiecePlaced() ? true : false;
+    pieceSizeInput.disabled =
+      rowIndex === 2 && !isWinningPiecePlaced() ? true : false;
 
     // Ensure empty orientation is hidden unless "empty" is selected
     if (pieceTypeSelect.value === "empty") {
@@ -94,18 +101,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const pieceSize = parseInt(pieceSizeInput.value);
     const emptyOrientation = emptyOrientationSelect.value;
 
-    if (!pieceSize || pieceSize < 1 || pieceSize > 3) {
-      alert("Please enter a valid piece size between 1 and 3.");
+    if (!pieceSize || pieceSize < 2 || pieceSize > 5) {
+      alert("Please enter a valid piece size between 2 and 5.");
       return;
     }
 
     if (pieceType === "empty" && !emptyOrientation) {
       alert("Please select the orientation for the empty piece.");
       return;
-    }
-
-    if (pieceType === "horizontal" && (selectedCellIndex + 1) > 3) {
-      console.log("selectedCellIndex", selectedCellIndex)
     }
 
     // Check for winning piece priority
@@ -146,7 +149,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // Check if the placement is valid and does not overlap with other pieces
     for (let i = 0; i < size; i++) {
       let index = startIndex + i * step;
-
       if (
         index >= 36 ||
         (type === "horizontal" && index % 6 < startIndex % 6) ||
@@ -202,7 +204,8 @@ document.addEventListener("DOMContentLoaded", () => {
           let index = startIndex + i * step;
           cells[index].classList.add("selected");
           cells[index].classList.add("disabled"); // Mark the cell as disabled
-          cells[index].style.backgroundColor = (type == "horizontal" ? "#55FD2F" : "#E0000F");
+          cells[index].style.backgroundColor =
+            type == "horizontal" ? "#55FD2F" : "#E0000F";
           cells[index].dataset.letter = pieceLetter; // Store the letter in the cell
           cells[index].removeEventListener("click", () =>
             openPieceModal(cells[index])
@@ -217,10 +220,7 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("Invalid piece placement. Please try again.");
       return false;
     }
-
-
   }
-
 
   // Find the first empty cell to the right of the currently selected cell
   function findNextEmptyCellIndex() {
